@@ -55,12 +55,12 @@ class GPUExplainer:
             numpy array of shape (n_instances, n_features)
         """
         # Convert input
-        if hasattr(X, 'values'):  # pandas
-            X = torch.tensor(X.values, dtype=torch.float32, device=self.device)
+        if isinstance(X, torch.Tensor):
+            X = X.float().to(self.device)
         elif isinstance(X, np.ndarray):
             X = torch.tensor(X, dtype=torch.float32, device=self.device)
-        elif isinstance(X, torch.Tensor):
-            X = X.float().to(self.device)
+        elif hasattr(X, 'values'):  # pandas DataFrame
+            X = torch.tensor(X.values, dtype=torch.float32, device=self.device)
 
         n_instances = X.shape[0]
         bg = self.background_mean
@@ -151,11 +151,13 @@ class GPUExplainer:
 
 # ================================================================
 if __name__ == '__main__':
-    import sys
-    sys.path.insert(0, r"C:\Users\salih\Desktop\py2tensor")
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.datasets import make_classification
-    from sklearn_to_gpu import convert_rf
+    try:
+        from py2tensor.sklearn_to_gpu import convert_rf
+    except ImportError:
+        import sys; sys.path.insert(0, r"C:\Users\salih\Desktop\py2tensor")
+        from sklearn_to_gpu import convert_rf
 
     device = torch.device("cuda")
     print(f"GPU: {torch.cuda.get_device_name()}")
